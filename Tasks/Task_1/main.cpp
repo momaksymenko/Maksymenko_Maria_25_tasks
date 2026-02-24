@@ -155,4 +155,25 @@ int main() {
 
         delete[] a1; delete[] a2; delete[] a3;
     }
+
+    cout << "\n--- Порівняння синхронного та асинхронного сортування методом Шелла (n=140000) ---" << endl;
+    int nArr = 140000;
+    int* syncArr = new int[nArr];
+    int* asyncArr = new int[nArr];
+    for (int i = 0; i < nArr; i++) 
+        syncArr[i] = asyncArr[i] = rand() % 1000;
+
+    auto s_start = high_resolution_clock::now();
+    shellSort(syncArr, nArr);
+    double s_time = duration<double>(high_resolution_clock::now() - s_start).count();
+
+    auto a_start = high_resolution_clock::now();
+    future<void> fut = async(launch::async, shellSort, asyncArr, nArr);
+    fut.get();
+    double a_time = duration<double>(high_resolution_clock::now() - a_start).count();
+
+    cout << "Синхронний час:  " << s_time << " сек." << endl;
+    cout << "Асинхронний час: " << a_time << " сек." << endl;
+
+    delete[] syncArr; delete[] asyncArr;
 }
