@@ -68,13 +68,33 @@ int binarySearch(int arr[], int n, int key) {
     return -1;
 }
 
+void compareSyncAsync(void (*sortFunc)(int*, int), string name, int n) {
+    int* syncArr = new int[n];
+    int* asyncArr = new int[n];
+    for (int i = 0; i < n; i++) syncArr[i] = asyncArr[i] = rand() % 10000;
+
+    auto startS = high_resolution_clock::now();
+    sortFunc(syncArr, n);
+    double sTime = duration<double>(high_resolution_clock::now() - startS).count();
+
+    auto startA = high_resolution_clock::now();
+    future<void> fut = async(launch::async, sortFunc, asyncArr, n);
+    fut.get();
+    double aTime = duration<double>(high_resolution_clock::now() - startA).count();
+
+    cout << name << (name.length() < 8 ? "\t\t" : "\t") << sTime << "\t\t" << aTime << endl;
+
+    delete[] syncArr;
+    delete[] asyncArr;
+}
+
 int main() {
     SetConsoleCP(65001);
     SetConsoleOutputCP(65001);
 	setlocale(LC_ALL, "Ukrainian");
 
     srand(time(0));
-    cout.precision(7);
+    cout.precision(6);
     cout << fixed;
 
     int userNum;
@@ -100,7 +120,7 @@ int main() {
     else 
         shellSort(userArr, userNum);
     auto e1 = high_resolution_clock::now();
-    double t_sort = duration<double>(e1 - s1).count();
+    double sortTime = duration<double>(e1 - s1).count();
 
     cout << "\nВідсортований масив: " << endl;
     printArray(userArr, userNum);
@@ -112,16 +132,16 @@ int main() {
     auto s2 = high_resolution_clock::now();
     int pos = binarySearch(userArr, userNum, searchKey);
     auto e2 = high_resolution_clock::now();
-    double t_search = duration<double>(e2 - s2).count();
+    double searchTime = duration<double>(e2 - s2).count();
 
     if (pos != -1) 
         cout << "Елемент знайдено на позиції: " << pos << endl;
     else 
         cout << "Елемент не знайдено." << endl;
 
-    cout << "\n--- Час виконання вашого запиту ---" << endl;
-    cout << "Час сортування: " << t_sort << " сек." << endl;
-    cout << "Час пошуку:     " << t_search << " сек." << endl;
+    cout << "\n----- Час виконання вашого запиту -----" << endl;
+    cout << "Час сортування: " << sortTime << " сек." << endl;
+    cout << "Час пошуку:     " << searchTime << " сек." << endl;
 
     delete[] userArr;
 
@@ -156,24 +176,14 @@ int main() {
         delete[] a1; delete[] a2; delete[] a3;
     }
 
-    cout << "\n--- Порівняння синхронного та асинхронного сортування методом Шелла (n=140000) ---" << endl;
-    int nArr = 140000;
-    int* syncArr = new int[nArr];
-    int* asyncArr = new int[nArr];
-    for (int i = 0; i < nArr; i++) 
-        syncArr[i] = asyncArr[i] = rand() % 1000;
+    int n = 140000;
+    cout << "\n--- Порівняння синхронного та асинхронного сортування (n="<<n<<") --- \n" << endl;
+    cout << "Метод\t\tСинхронно (сек)\t\tАсинхронно (сек)" << endl;
+    cout << "------------------------------------------------------------" << endl;
 
-    auto s_start = high_resolution_clock::now();
-    shellSort(syncArr, nArr);
-    double s_time = duration<double>(high_resolution_clock::now() - s_start).count();
+    compareSyncAsync(insertionSort, "Insertion", n);
+    compareSyncAsync(selectionSort, "Selection", n);
+    compareSyncAsync(shellSort, "Shell", n);
 
-    auto a_start = high_resolution_clock::now();
-    future<void> fut = async(launch::async, shellSort, asyncArr, nArr);
-    fut.get();
-    double a_time = duration<double>(high_resolution_clock::now() - a_start).count();
-
-    cout << "Синхронний час:  " << s_time << " сек." << endl;
-    cout << "Асинхронний час: " << a_time << " сек." << endl;
-
-    delete[] syncArr; delete[] asyncArr;
+    cout << "------------------------------------------------------------" << endl;
 }
