@@ -25,8 +25,6 @@ void printCell(int num) {
         cout << "  ";
     else if ((num > -10 && num < 0) || (num >= 10))
         cout << " ";
-    else if (num <= -10)
-        cout << "";
     cout << num << "  ";
 }
 
