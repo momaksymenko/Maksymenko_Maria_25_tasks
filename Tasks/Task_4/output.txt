@@ -1,0 +1,2 @@
+Word: ipsum
+Count: 7
